@@ -27,23 +27,44 @@ class SubmitAllAfter implements \Magento\Framework\Event\ObserverInterface
     public function execute(
         \Magento\Framework\Event\Observer $observer
     ) {
-        // $this->logger->debug('event');
+        $this->logger->debug('event triggered');
 
         if (!$this->helper->isEnabled()) {
             return $this;
         }
 
-        // $this->logger->debug('enabled');
+        $this->logger->debug('enabled');
 
         $order = $observer->getEvent()->getOrder();
         if (!$order->getId()) {
             return $this;
         }
 
-        // $this->logger->debug('id:'.$order->getId());
+        $this->logger->debug((string)__('order id : %1', $order->getId()));
 
+        $customerGroups = $this->helper->getCustomerGroup();
+        $emails = $this->helper->getCustomerEmail();
+
+        // if no values skip extra validation
+        if ($customerGroups || $emails) {
+            $this->logger->debug((string)__('order customer group id : %1', $order->getCustomerGroupId()));
+
+            if ($customerGroups) {
+                if (!in_array($order->getCustomerGroupId(), $customerGroups)) {
+                    return $this;
+                }
+            }
+               
+            $this->logger->debug((string)__('order customer email id : %1', $order->getCustomerEmail()));
+            if ($emails) {
+                if (!in_array($order->getCustomerEmail(), $emails)) {
+                    return $this;
+                }
+            }
+        }
+     
         $invoice = $this->helper->createInvoice($order->getId());
-
+            
         return $this;
     }
 }

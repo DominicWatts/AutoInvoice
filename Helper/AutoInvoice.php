@@ -11,6 +11,8 @@ class AutoInvoice extends AbstractHelper
 {
     const MODULE_ENABLED = 'autoinvoice/autoinvoice/enabled';
     const MODULE_PAYMENTS = 'autoinvoice/autoinvoice/payments';
+    const MODULE_CUSTOMER_GROUP = 'autoinvoice/autoinvoice/customer_group';
+    const MODULE_CUSTOMER_EMAIL = 'autoinvoice/autoinvoice/customer_email';
 
     /**
      * @var \Magento\Framework\App\Config\ScopeConfigInterface
@@ -38,12 +40,25 @@ class AutoInvoice extends AbstractHelper
     protected $transactionFactory;
 
     /**
-     * @param \Magento\Framework\App\Helper\Context                              $context
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface                 $scopeConfig
+     * @var \Magento\Sales\Api\OrderRepositoryInterface
+     */
+    protected $orderRepositoryInterface;
+
+    /**
+     * @var \Magento\Customer\Api\CustomerRepositoryInterface
+     */
+    protected $customerRepositoryInterface;
+
+    /**
+     * Undocumented function
+     * @param \Magento\Framework\App\Helper\Context $context
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Sales\Model\ResourceModel\Order\Invoice\CollectionFactory $invoiceCollectionFactory
-     * @param \Magento\Sales\Model\Service\InvoiceService                        $invoiceService
-     * @param \Magento\Sales\Model\Order\ShipmentFactory                         $shipmentFactory
-     * @param \Magento\Framework\DB\TransactionFactory                           $transactionFactory
+     * @param \Magento\Sales\Model\Service\InvoiceService $invoiceService
+     * @param \Magento\Sales\Model\Order\ShipmentFactory $shipmentFactory
+     * @param \Magento\Framework\DB\TransactionFactory $transactionFactory
+     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepositoryInterface
+     * @param \Magento\Customer\Api\CustomerRepositoryInterface $customerRepositoryInterface
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
@@ -52,7 +67,8 @@ class AutoInvoice extends AbstractHelper
         \Magento\Sales\Model\Service\InvoiceService $invoiceService,
         \Magento\Sales\Model\Order\ShipmentFactory $shipmentFactory,
         \Magento\Framework\DB\TransactionFactory $transactionFactory,
-        \Magento\Sales\Api\OrderRepositoryInterface $orderRepositoryInterface
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepositoryInterface,
+        \Magento\Customer\Api\CustomerRepositoryInterface $customerRepositoryInterface
     ) {
         parent::__construct($context);
         $this->scopeConfig = $scopeConfig;
@@ -61,12 +77,13 @@ class AutoInvoice extends AbstractHelper
         $this->shipmentFactory = $shipmentFactory;
         $this->transactionFactory = $transactionFactory;
         $this->orderRepositoryInterface = $orderRepositoryInterface;
+        $this->customerRepositoryInterface = $customerRepositoryInterface;
     }
 
     /**
      * Create invoide by entity_id.
      *
-     * @param int $orderId
+     * @param int $orderIdMODULE_CUSTOMER_GROUP
      *
      * @return void
      */
@@ -115,13 +132,46 @@ class AutoInvoice extends AbstractHelper
     }
 
     /**
-     * Is the module enabled in configuration.
+     * Is the module enabled for certain payments in configuration.
      *
      * @return string
      */
     public function getAutoInvoicePayments()
     {
         return $this->scopeConfig->getValue(self::MODULE_PAYMENTS);
+    }
+
+    /**
+     * Is the module enabled for certain customer group(s) in configuration.
+     *
+     * @return string
+     */
+    public function getCustomerGroup()
+    {
+        $config = $this->scopeConfig->getValue(self::MODULE_CUSTOMER_GROUP);
+        if ($config) {
+            return explode(',', $config);
+        }
+        return false;
+    }
+
+    /**
+     * Is the module enabled for certain email(s) in configuration.
+     *
+     * @return string
+     */
+    public function getCustomerEmail()
+    {
+        $config = $this->scopeConfig->getValue(self::MODULE_CUSTOMER_EMAIL);
+        if ($config) {
+            $emailArray = [];
+            $emails = explode(',', trim($this->scopeConfig->getValue(self::MODULE_CUSTOMER_EMAIL)));
+            foreach ($emails as $email) {
+                $emailArray[trim($email)] = trim($email);
+            }
+            return $emailArray;
+        }
+        return false;
     }
 
     /**
@@ -136,6 +186,24 @@ class AutoInvoice extends AbstractHelper
         try {
             return $this->orderRepositoryInterface->get($orderId);
         } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Get customer by Id.
+     *
+     * @param int $customerId
+     *
+     * @return \Magento\Customer\Model\Data\Customer
+     */
+    public function getCustomerById($customerId)
+    {
+        try {
+            return $this->customerRepositoryInterface->getById($customerId);
+        } catch (\Exception $e) {
+            $this->logger->critical($e);
+
             return false;
         }
     }
