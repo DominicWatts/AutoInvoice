@@ -10,7 +10,7 @@ Stores > Configuration > Xigen > Auto Invoice
 
 # Install instructions #
 
-`composer require dominicwatts/faker`
+`composer require dominicwatts/autoinvoice`
 
 `php bin/magento setup:upgrade`
 
