@@ -18,6 +18,6 @@ Stores > Configuration > Xigen > Auto Invoice
 
 Console script to generate invoices by increment ID
 
-`xigen:invoice-order [-o|--orderid ORDERID`
+`xigen:invoice:order [-o|--orderid ORDERID`
 
-`php bin/magento xigen:invoice-order -o 000000006`
+`php bin/magento xigen:invoice:order -o 000000006`
