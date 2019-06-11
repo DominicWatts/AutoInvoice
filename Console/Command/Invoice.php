@@ -77,7 +77,7 @@ class Invoice extends Command
      */
     protected function configure()
     {
-        $this->setName('xigen:invoice-order')
+        $this->setName('xigen:invoice:order')
             ->setDescription('Invoice order within magento')
             ->addOption(
                 'orderid',
