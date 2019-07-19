@@ -7,6 +7,14 @@ namespace Xigen\AutoInvoice\Observer\Checkout;
  */
 class SubmitAllAfter implements \Magento\Framework\Event\ObserverInterface
 {
+    /**
+     * @var \Psr\Log\LoggerInterface
+     */
+    protected $logger;
+
+    /**
+     * @var \Xigen\AutoInvoice\Helper\AutoInvoice
+     */
     protected $helper;
 
     public function __construct(
@@ -19,9 +27,7 @@ class SubmitAllAfter implements \Magento\Framework\Event\ObserverInterface
 
     /**
      * Execute observer.
-     *
      * @param \Magento\Framework\Event\Observer $observer
-     *
      * @return void
      */
     public function execute(
@@ -33,38 +39,39 @@ class SubmitAllAfter implements \Magento\Framework\Event\ObserverInterface
             return $this;
         }
 
-        $this->logger->debug('enabled');
+        $this->logger->debug('AutoInvoice enabled');
 
         $order = $observer->getEvent()->getOrder();
         if (!$order->getId()) {
             return $this;
         }
 
-        $this->logger->debug((string)__('order id : %1', $order->getId()));
+        $this->logger->debug((string) __('AutoInvoice inspecting order id : %1', $order->getId()));
 
         $customerGroups = $this->helper->getCustomerGroup();
         $emails = $this->helper->getCustomerEmail();
 
         // if no values skip extra validation
         if ($customerGroups || $emails) {
-            $this->logger->debug((string)__('order customer group id : %1', $order->getCustomerGroupId()));
+
+            // $this->logger->debug((string) __('order customer group id : %1', $order->getCustomerGroupId()));
 
             if ($customerGroups) {
                 if (!in_array($order->getCustomerGroupId(), $customerGroups)) {
                     return $this;
                 }
             }
-               
-            $this->logger->debug((string)__('order customer email id : %1', $order->getCustomerEmail()));
+
+            // $this->logger->debug((string) __('order customer email id : %1', $order->getCustomerEmail()));
             if ($emails) {
                 if (!in_array($order->getCustomerEmail(), $emails)) {
                     return $this;
                 }
             }
         }
-     
+
         $invoice = $this->helper->createInvoice($order->getId());
-            
+
         return $this;
     }
 }

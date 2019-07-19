@@ -11,8 +11,18 @@ use Magento\Payment\Model\Config;
 class Payments implements \Magento\Framework\Option\ArrayInterface
 {
     /**
+     * @var ScopeConfigInterface
+     */
+    private $_appConfigScopeConfigInterface;
+
+    /**
+     * @var Config
+     */
+    private $_paymentModelConfig;
+
+    /**
      * @param ScopeConfigInterface $appConfigScopeConfigInterface
-     * @param Config               $paymentModelConfig
+     * @param Config $paymentModelConfig
      */
     public function __construct(
         ScopeConfigInterface $appConfigScopeConfigInterface,
@@ -24,7 +34,6 @@ class Payments implements \Magento\Framework\Option\ArrayInterface
 
     /**
      * toOptionArray.
-     *
      * @return array
      */
     public function toOptionArray()
@@ -33,7 +42,7 @@ class Payments implements \Magento\Framework\Option\ArrayInterface
         $methods = [];
         foreach ($payments as $paymentCode => $paymentModel) {
             $paymentTitle = $this->_appConfigScopeConfigInterface
-                ->getValue('payment/'.$paymentCode.'/title');
+                ->getValue('payment/' . $paymentCode . '/title');
 
             $methods[$paymentCode] = [
                 'label' => $paymentTitle,
