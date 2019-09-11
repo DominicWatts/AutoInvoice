@@ -3,7 +3,7 @@
     <type name="Magento\Framework\Console\CommandList">
         <arguments>
             <argument name="commands" xsi:type="array">
-                <item name="Invoice" xsi:type="object">Xigen\AutoInvoice\Console\Command\Invoice</item>
+                <item name="AutoInvoice_Invoice" xsi:type="object">Xigen\AutoInvoice\Console\Command\Invoice</item>
             </argument>
         </arguments>
     </type>
